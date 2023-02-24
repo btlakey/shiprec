@@ -1,2 +1,7 @@
 # shiprec
-Book recommendations from Goodreads
+<img src="img/shiprec.png"  width="200" height="200">
+
+
+book recommendations from Goodreads
+
+![](img/wut.png)
