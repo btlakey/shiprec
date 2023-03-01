@@ -3,13 +3,13 @@ from toolz import curry
 import locale
 import logging
 
-logger = logging.getLogger('shelves_logger')
+logger = logging.getLogger('shelf_logger')
 logger.STDOUT = True
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')  # this handles commas in string numbers
 
 
-class ShelvesSpider(scrapy.Spider):
-    name = "shelves"
+class ShelfSpider(scrapy.Spider):
+    name = "shelf"
     shelf_names = ["favorite", "reread", "must", "best"]
     shelf_names_re = "|".join(shelf_names)
 
@@ -21,6 +21,7 @@ class ShelvesSpider(scrapy.Spider):
         # the . prevents the xpath query from going all the way back to the root node
         val = response.xpath("." + xpath_query).get()
 
+        ## should this be in the pipeline adapter?
         # various fields sometimes return None, empty string, or only whitespace
         try:
             val = val.strip()
@@ -34,18 +35,6 @@ class ShelvesSpider(scrapy.Spider):
                 if kwargs.get(type_check, False):
                     val = convert(locale.atof(val))  # remove any commas that might be there; atof=float
             return val
-
-    def convert_rating(self, rating:str):
-        rating_map = {
-            "it was amazing": 5,
-            "really liked it": 4,
-            "liked it": 3,
-            "it was OK": 2,
-            "didn't like it": 1
-        }
-        for k, v in rating_map.items():
-            if rating == k:
-                return v
 
     def parse(self, response):
         shelf_urls = response.xpath(
@@ -82,9 +71,9 @@ class ShelvesSpider(scrapy.Spider):
             "num_rating": book_xpath(
                 "//*[@class='field num_ratings']//div//text()", is_int=True
             ),
-            "user_rating": self.convert_rating(book_xpath(
+            "user_rating": book_xpath(
                 "//*[@class='field rating']//*[@class=' staticStars notranslate']/@title"
-            )),
+            ),
             "date_read": book_xpath(
                 "//*[@class='field date_read']//*[@class='date_read_value']/text()"
             ),
