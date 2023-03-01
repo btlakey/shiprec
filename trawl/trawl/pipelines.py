@@ -11,8 +11,15 @@ from datetime import datetime
 import pyarrow as pa
 import pyarrow.parquet as pq
 
+from utils.utils import get_project_root
+
 
 class TrawlPipeline:
+    def process_item(self, item, spider):
+        return item
+
+
+class ShelfPipeline:
 
     # TODO: do all stripping and type conversions in pipeline
     items_conv = (
@@ -33,13 +40,14 @@ class TrawlPipeline:
 
         # TODO: add some userid (or shelfid?) string to filenames
         # filename = f"{self.record_ct:05d}_{adapter.get('user_id')}"
-        filename = f"{self.record_ct:05d}"
+        filename = f"{get_project_root('data')}/{self.record_ct:05d}"
         self.export_item(item, filename)
+        self.record_ct += 1
         return item
 
-    def convert_to_pyarrow(self, item: dict):
+    def convert_to_pyarrow(self, item_dict):
         # TODO: handle list vs dict (should pass in list)
-        return pa.Table.from_pylist([item])
+        return pa.Table.from_pylist([item_dict])
 
     def export_item(self, item, filename):
         item_dict = ItemAdapter(item).asdict()
