@@ -2,3 +2,5 @@
 __pycache__
 data/
 *.parquet
+build/
+*.egg-info/

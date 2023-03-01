@@ -6,10 +6,11 @@ setup(
     description='graph neural network book recommendations, built on scraped Goodreads data',
     author='Brian Lakey',
     author_email='brianlakey@gmail.com',
+    license="MPL-2.0",
     packages=find_packages(),
-    requires=[
-        'Scrapy=2.8.0',
-        'pyarrow=11.0.0',
-        'toolz=0.12.0'
+    install_requires=[
+        'Scrapy==2.8.0',
+        'pyarrow==11.0.0',
+        'toolz==0.12.0'
     ]
 )

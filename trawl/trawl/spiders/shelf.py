@@ -3,7 +3,7 @@ import locale
 import logging
 
 
-from trawl.trawl.spiders.spider import TrawlSpider
+from .spider import TrawlSpider
 
 logger = logging.getLogger('shelf_logger')
 logger.STDOUT = True

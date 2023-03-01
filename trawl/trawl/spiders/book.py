@@ -8,7 +8,6 @@ class BookSpider(scrapy.Spider):
         review_url = response.xpath(
             ".//*[@class='field actions']//*[text()='view (with text)']/@href"
         )
-        logger.info(f"review_url: {review_url}")
         yield response.follow(review_url, self.parse_review)
 
     def parse(self, response):
