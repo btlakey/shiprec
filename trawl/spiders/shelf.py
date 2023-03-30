@@ -1,35 +1,49 @@
+import nest_asyncio
 from toolz import curry
-import locale
-import logging
-
-
 from .spider import TrawlSpider
+from scrapy.exceptions import CloseSpider
+import scrapy
+import logging
 
 logger = logging.getLogger('shelf_logger')
 logger.STDOUT = True
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')  # this handles commas in string numbers
+nest_asyncio.apply()
 
 
 class ShelfSpider(TrawlSpider):
     name = "shelf"
-    shelf_names = ["favorite", "reread", "must", "best"]
-    shelf_names_re = "|".join(shelf_names)
+    next_page = True
+    current_page = 1
+    books_got = 0
+    start_url = "https://www.goodreads.com/review/list/40648422-samuraikitty?shelf=favorites&page={}"
 
-    start_urls = [
-        "https://www.goodreads.com/review/list/40648422"
-    ]
+    def page_request(self):
+        url = self.start_url.format(self.current_page)
+        return scrapy.Request(url=url, callback=self.parse)
+
+    def start_requests(self):
+        yield self.page_request()
+
+    def set_status(self, response):
+        try:
+            status = self.response_get(response, "//*[@id='infiniteStatus']//text()").split()
+            got_page, total = (int(status[i]) for i in [0, 2])
+            self.books_got += got_page
+            self.current_page += 1
+            self.next_page = self.books_got <= total
+        except AttributeError or NameError:  # accidentally got extra page
+            CloseSpider("no more books on shelf")
 
     def parse(self, response):
-        shelf_urls = response.xpath(
-                f"//*[@id='paginatedShelfList']//*[re:test(@title, '{self.shelf_names_re}')]/@href"
-            )
-        yield from response.follow_all(shelf_urls, self.parse_shelf)
-
-    def parse_shelf(self, response_shelf):
-        for book in response_shelf.xpath(
+        for book in response.xpath(
             "//*[@id='booksBody']//*[@class='bookalike review']"
         ):
             yield self.parse_book(book)
+
+        self.set_status(response)
+        print(f"fetched {self.books_got}")
+        if self.next_page:
+            yield self.page_request()
 
     def parse_book(self, response_book):
         # book_xpath = lambda x: response_book.xpath(x).get()
@@ -64,3 +78,4 @@ class ShelfSpider(TrawlSpider):
                 "//*[@class='field date_added']//div//@title"
             )
         }
+

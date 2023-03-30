@@ -32,7 +32,7 @@ For complete documentation, please refer to [_the docs!_](https://docs.scrapy.or
 have fun with `Xcode` and `PATH` settings and the `M1` chip compilation
 
 #### on Windows
-<img src="../img/wut.png"  width="125" height="75">
+<img src="img/wut.png"  width="125" height="75">
 
 ### setup
 
