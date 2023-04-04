@@ -21,7 +21,7 @@ class CombinedSpider(TrawlSpider):
         self.reset_status()
 
     def page_request(self, url):
-        url_page = url + f"&page={self.current_page}"
+        url_page = url.split("&page=")[0] + f"&page={self.current_page}"
         print(f"page_request.url_page: {url_page}")
         return scrapy.Request(url=url_page, callback=self.parse_shelf)
 
@@ -60,7 +60,7 @@ class CombinedSpider(TrawlSpider):
         for book in response_shelf.xpath(
             "//*[@id='booksBody']//*[@class='bookalike review']"
         ):
-            yield self.parse_book(book)
+            yield self.parse_book(book, response_shelf.url)
 
         self.set_status(response_shelf)
         print(f"fetched {self.books_got}")
@@ -69,9 +69,22 @@ class CombinedSpider(TrawlSpider):
         else:
             self.reset_status()
 
-    def parse_book(self, response_book):
-        # book_xpath = lambda x: response_book.xpath(x).get()
+    def parse_book(self, response_book, shelf_url):
         book_xpath = curry(self.response_get)(response_book)
+
+        # # is there review text?
+        # if not response_book.xpath(
+        #     ".//*[@class='field actions']//*[text()='view (with text)']/@href"
+        # ):
+        #     review = {}
+        # else:
+        #     review = {
+        #         "review_text": self.response_get(
+        #             response_review,
+        #             "//*[@itemprop='reviewBody']//text()"
+        #         )
+        #     }
+
 
         return {
             "title": book_xpath(
@@ -100,6 +113,10 @@ class CombinedSpider(TrawlSpider):
             ),
             "date_added": book_xpath(
                 "//*[@class='field date_added']//div//@title"
-            )
+            ),
+            "review_text": book_xpath(
+                "//*[re:test(@id, 'freeTextreview*')]//text()"
+            ),
+            "shelf_url": shelf_url
         }
 
