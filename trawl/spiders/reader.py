@@ -1,8 +1,7 @@
-from toolz import curry
 import locale
 import logging
 
-from trawl import TrawlSpider, ShelfSpider
+from trawl.spiders.spider import TrawlSpider
 
 logger = logging.getLogger('shelf_logger')
 logger.STDOUT = True

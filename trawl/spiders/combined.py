@@ -17,23 +17,30 @@ class CombinedSpider(TrawlSpider):
     shelf_names = ["favorite", "reread", "must", "best"]
     shelf_names_re = "|".join(shelf_names)
 
-    next_page = True
-    current_page = 1
-    books_got = 0
+    def __init__(self):
+        self.reset_status()
 
     def page_request(self, url):
         url_page = url + f"&page={self.current_page}"
-        return scrapy.Request(url=url_page, callback=self.parse)
+        print(f"page_request.url_page: {url_page}")
+        return scrapy.Request(url=url_page, callback=self.parse_shelf)
 
     def set_status(self, response):
         try:
             status = self.response_get(response, "//*[@id='infiniteStatus']//text()").split()
             got_page, total = (int(status[i]) for i in [0, 2])
+            print(f"got_page: {got_page}\ntotal:{total}")
             self.books_got += got_page
             self.current_page += 1
-            self.next_page = self.books_got <= total
+            self.next_page = self.books_got < total
+            print(f"self.next_page: {self.next_page}")
         except AttributeError or NameError:  # accidentally got extra page
             CloseSpider("no more books on shelf")
+
+    def reset_status(self):
+        self.books_got = 0
+        self.current_page = 1
+        self.next_page = True
 
     def get_shelf_urls(self, response):
         return response.xpath(
@@ -41,11 +48,15 @@ class CombinedSpider(TrawlSpider):
         ).getall()
 
     def parse(self, response):
+        print(f"get_shelf_urls: {self.get_shelf_urls(response)}")
         for shelf_url in self.get_shelf_urls(response):
+            print(f"\n\nshelf_url: {shelf_url}")
             next_page = response.urljoin(shelf_url)
+            print(f"next_page url: {next_page}")
             yield scrapy.Request(next_page, callback=self.parse_shelf)
 
     def parse_shelf(self, response_shelf):
+        print(f"response_shelf.url: {response_shelf.url}")
         for book in response_shelf.xpath(
             "//*[@id='booksBody']//*[@class='bookalike review']"
         ):
@@ -54,7 +65,9 @@ class CombinedSpider(TrawlSpider):
         self.set_status(response_shelf)
         print(f"fetched {self.books_got}")
         if self.next_page:
-            yield self.page_request()
+            yield self.page_request(response_shelf.url)
+        else:
+            self.reset_status()
 
     def parse_book(self, response_book):
         # book_xpath = lambda x: response_book.xpath(x).get()
