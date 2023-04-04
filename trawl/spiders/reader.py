@@ -12,7 +12,9 @@ nest_asyncio.apply()
 
 class ReaderSpider(TrawlSpider):
     name = "reader"
-    start_urls = ["https://www.goodreads.com/review/list/40648422"]
+    start_urls = [
+        "https://www.goodreads.com/review/list/40648422"
+    ]
 
     def __init__(self):
         self.reset_status()
