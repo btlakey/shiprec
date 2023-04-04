@@ -1,37 +1,23 @@
 import scrapy
+from .spider import TrawlSpider
 
 
-class BookSpider(scrapy.Spider):
-    name = "book"
-
-    def get_review(self, response):
-        review_url = response.xpath(
-            ".//*[@class='field actions']//*[text()='view (with text)']/@href"
-        )
-        yield response.follow(review_url, self.parse_review)
+class BookSpider(TrawlSpider):
+    name = "review"
+    start_urls = ["https://www.goodreads.com/review/list/40648422-samuraikitty?shelf=favorites"]
 
     def parse(self, response):
-        pass
+        for review_url in response.xpath(
+            ".//*[@class='field actions']//*[text()='view (with text)']/@href"
+        ).getall():
+            review_path = response.urljoin(review_url)
+            print(f"review_path: {review_path}")
+            yield scrapy.Request(review_path, callback=self.parse_review)
 
     def parse_review(self, response_review):
-        return self.response_get(
-            response_review,
-            "//*[@itemprop='reviewBody']//text()"
-        )
-
-    def get_shelves(self, response):
-        return None
-
-    def get_shelf_name(self, reponse_shelf):
-        names = reponse_shelf.xpath(
-            "//*[@id='header']//*[@class='h1Shelf']//text()"
-        ).getall()
-
-        # for some reason, there are multiple returns for the shelf header name
-        # but they're all empty strings
-        name = [n.strip() for n in names if not str.isspace(n)]
-        assert len(name) == 1
-
-        # there are some zero-space unicode characters
-        return name[0].encode("ascii", "ignore").decode()
-
+        return {
+            "review_text": self.response_get(
+                response_review,
+                "//*[@itemprop='reviewBody']//text()"
+            )
+        }
