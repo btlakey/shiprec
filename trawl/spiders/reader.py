@@ -1,13 +1,11 @@
-import nest_asyncio
 from toolz import curry
 from .spider import TrawlSpider
 from scrapy.exceptions import CloseSpider
 import scrapy
 import logging
 
-logger = logging.getLogger('shelf_logger')
+logger = logging.getLogger('logger')
 logger.STDOUT = True
-nest_asyncio.apply()
 
 
 class ReaderSpider(TrawlSpider):
@@ -85,7 +83,7 @@ class ReaderSpider(TrawlSpider):
             where url = shelf url
         """
         for shelf_url in self.get_shelf_urls(response):
-            print(f"\n\nshelf_url: {shelf_url}")
+            # print(f"\n\nshelf_url: {shelf_url}")
             next_page = response.urljoin(shelf_url)
             yield scrapy.Request(next_page, callback=self.parse_shelf)
 
@@ -126,14 +124,14 @@ class ReaderSpider(TrawlSpider):
             "title": book_xpath(
                 "//*[@class='field title']//@title"
             ),
-            "isbn13": book_xpath(
-                "//*[@class='field isbn13']//div//text()", is_int=True
-            ),
             "author": book_xpath(
                 "//*[@class='field author']//a//text()"
             ),
             "date_pub": book_xpath(
                 "//*[@class='field date_pub']//div//text()"
+            ),
+            "isbn13": book_xpath(
+                "//*[@class='field isbn13']//div//text()", is_int=True
             ),
             "mean_rating": book_xpath(
                 "//*[@class='field avg_rating']//div//text()", is_float=True
