@@ -7,10 +7,7 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')  # this handles commas in string 
 class TrawlSpider(scrapy.Spider):
 
     @staticmethod
-    def response_get(response, xpath_query, **kwargs):
-        # the . prevents the xpath query from going all the way back to the root node
-        val = response.xpath("." + xpath_query).get()
-
+    def strip_convert(val, **kwargs):
         ## should this be in the pipeline adapter?
         # various fields sometimes return None, empty string, or only whitespace
         try:
@@ -25,3 +22,10 @@ class TrawlSpider(scrapy.Spider):
                 if kwargs.get(type_check, False):
                     val = convert(locale.atof(val))  # remove any commas that might be there; atof=float
             return val
+
+    def response_get(self, response, xpath_query, **kwargs):
+        # the . prevents the xpath query from going all the way back to the root node
+        val = response.xpath("." + xpath_query).get()
+        return self.strip_convert(val)
+
+

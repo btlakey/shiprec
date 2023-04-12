@@ -10,6 +10,7 @@ configure_logging(settings)
 runner = CrawlerRunner(settings)
 
 
+# TODO: is this main invocation needed in this way?
 @defer.inlineCallbacks
 def trawl():
     # this should need passed a book_id (or list) and return list of reader_ids
