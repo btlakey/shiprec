@@ -133,12 +133,6 @@ class ReaderSpider(TrawlSpider):
             "isbn13": book_xpath(
                 "//*[@class='field isbn13']//div//text()", is_int=True
             ),
-            "mean_rating": book_xpath(
-                "//*[@class='field avg_rating']//div//text()", is_float=True
-            ),
-            "num_rating": book_xpath(
-                "//*[@class='field num_ratings']//div//text()", is_int=True
-            ),
             "user_rating": book_xpath(
                 "//*[@class='field rating']//*[@class=' staticStars notranslate']/@title"
             ),

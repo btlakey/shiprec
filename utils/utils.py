@@ -11,3 +11,8 @@ def get_project_root(*args):
     else:
         print(f"{checkdir} does not exist, returning root")
         return root
+
+
+def not_none(obj):
+    """ Check whether an object is None """
+    return obj is not None
