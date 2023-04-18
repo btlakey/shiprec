@@ -3,7 +3,7 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 
-from trawl import BookSpider, ShelfSpider, ReaderSpider
+from .spiders import BookSpider, ReaderSpider
 
 settings = get_project_settings()
 configure_logging(settings)
