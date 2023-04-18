@@ -1,4 +1,4 @@
-from toolz import curry, compose
+from toolz import curry
 from .spider import TrawlSpider
 
 
@@ -40,7 +40,6 @@ class BookSpider(TrawlSpider):
             },
             **self._review_star_count(response)
         }
-
 
     def parse(self, response):
         book_xpath = curry(self.response_get)(response)
