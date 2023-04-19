@@ -37,7 +37,7 @@ class ReaderSpider(TrawlSpider):
         try:
             status = self.response_get(response, "//*[@id='infiniteStatus']//text()").split()
             got_page, total = (int(status[i]) for i in [0, 2])
-            print(f"got_page: {got_page}\ntotal:{total}")
+            print(f"got_page: {got_page}\ntotal: {total}")
             self.books_got += got_page
             self.current_page += 1
             self.next_page = self.books_got < total
@@ -103,7 +103,7 @@ class ReaderSpider(TrawlSpider):
             yield self.parse_book(book, response_shelf.url)
 
         self.set_status(response_shelf)
-        print(f"fetched {self.books_got}")
+        print(f"fetched: {self.books_got}")
         if self.next_page:
             yield self.page_request(response_shelf.url)
         else:

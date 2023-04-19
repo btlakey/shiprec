@@ -1,10 +1,9 @@
-from itemadapter import ItemAdapter
 import pyarrow as pa
 import pyarrow.parquet as pq
 import uuid
 import random
 
-from utils.utils import get_project_root
+from utils import get_project_root, makedir_check
 
 
 class TrawlPipeline:
@@ -21,7 +20,7 @@ class TrawlPipeline:
             set(item.keys()).symmetric_difference(set(self.schema.names))
         ) == 0
 
-    def batch_items(self, adapter):
+    def batch_items(self, adapter, **kwargs):
         """ Every n=64 scraped items, batch and serialize as parquet
 
         :param adapter: scrapy.ItemAdapter
@@ -32,7 +31,7 @@ class TrawlPipeline:
         self.items += [adapter.asdict()]
         if len(self.items) >= 64:
             self.assert_schema()
-            self.export_items()
+            self.export_items(**kwargs)
 
     def convert_to_pyarrow(self, items):
         """ Given a list of dictionaries, format into pyArrow table for parquet serialization
@@ -50,11 +49,13 @@ class TrawlPipeline:
         :return: None
             serialize to parquet, reset batch
         """
-        filename = f"{get_project_root('data')}/{uuid.uuid4()}"
-        print(f"filename: {filename}\n")
+        dirpath = f"{get_project_root('data')}/{self.subdir}/"
+        makedir_check(dirpath)
+        filepath = dirpath + str(uuid.uuid4())
+        print(f"filepath: {filepath}\n")
         pq.write_table(
             self.convert_to_pyarrow(self.items),
-            filename + ".parquet"
+            filepath + ".parquet"
         )
         self.items = []
 

@@ -62,8 +62,10 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+## Preferable to specify item pipelines in spider init class
 # ITEM_PIPELINES = {
-#    "trawl.pipelines.reader.ReaderPipeline": 1,
+#    "trawl.pipelines.favorite.FavoritePipeline": 1,
+#    "trawl.pipelines.reader.ReaderPipeline": 2,
 # }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

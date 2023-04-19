@@ -20,6 +20,12 @@ class ReaderPipeline(TrawlPipeline):
         Make sure that Pipelines are appropriately specified (including processing order)
           in trawl.settings.ITEM_PIPELINES
         """
+        super().__init__()
+        self.custom_settings = {
+            "ITEM_PIPELINES": {
+                "trawl.pipelines.reader.ReaderPipeline": 2
+            }
+        }
 
         # TODO: do all stripping and type conversions in pipeline
         self.items_conv = (
@@ -34,39 +40,16 @@ class ReaderPipeline(TrawlPipeline):
         # define schema here, otherwise some nullable columns will be inferred incorrectly
         self.schema = pa.schema([
             ("title", pa.string()),
-            ("isbn13", pa.int64()),
             ("author", pa.string()),
             ("date_pub", pa.string()),
-            ("mean_rating", pa.float64()),
-            ("num_rating", pa.int64()),
+            ("isbn13", pa.int64()),
             ("user_rating", pa.int64()),
             ("date_read", pa.string()),
             ("date_added", pa.string()),
             ("review_text", pa.string()),
             ("shelf_url", pa.string()),
         ])
-
-    def assert_schema(self):
-        """ Double check that every key in the crawled item is present in the schema
-        and vice versa
-        """
-        item = random.sample(self.items, 1)[0]
-        assert len(
-            set(item.keys()).symmetric_difference(set(self.schema.names))
-        ) == 0
-
-    def batch_items(self, adapter):
-        """ Every n=64 scraped items, batch and serialize as parquet
-
-        :param adapter: scrapy.ItemAdapter
-            scrapy wrapper for a dict: items scraped from reader shelf
-        :return: None
-            assert schema and then serialize to parquet
-        """
-        self.items += [adapter.asdict()]
-        if len(self.items) >= 64:
-            self.assert_schema()
-            self.export_items()
+        self.subdir = "reader"
 
     def process_item(self, item, spider):
         """ For each scraped reader shelf dict, do any necessary post-processing
@@ -87,41 +70,6 @@ class ReaderPipeline(TrawlPipeline):
 
         self.batch_items(adapter)
         return adapter
-
-    def convert_to_pyarrow(self, items):
-        """ Given a list of dictionaries, format into pyArrow table for parquet serialization
-        Apply self.schema to prevent nullable column inference
-
-        :param items: list(dict), list of adapter-processed items
-        :return: pyarrow.Table
-            formatted pyarrow Table for parquet serialization
-        """
-        return pa.Table.from_pylist(items, schema=self.schema)
-
-    def export_items(self):
-        """ Serialize self.items batch with a UUID filename, and then reset batch
-
-        :return: None
-            serialize to parquet, reset batch
-        """
-        filename = f"{get_project_root('data')}/{uuid.uuid4()}"
-        print(f"filename: {filename}\n")
-        pq.write_table(
-            self.convert_to_pyarrow(self.items),
-            filename + ".parquet"
-        )
-        self.items = []
-
-    def close_spider(self, spider):
-        """ Built-in method for final processing step when spider is closed
-        Serialize any remaining items in self.items batch
-
-        :param spider: scrapy.Spider, required arg
-        :return: None
-            call to self.export_items()
-        """
-        print(f"dumping last items: {len(self.items)}")
-        self.export_items()
 
     @staticmethod
     def convert_rating(rating: str):
