@@ -23,6 +23,8 @@ class ReaderSpider(TrawlSpider):
         self.current_page = 1
         self.next_page = True
 
+    # TODO: perhaps consider setting up rules for a CrawlSpider to hit all next pages
+    # https://www.youtube.com/watch?v=o1g8prnkuiQ
     def set_status(self, response):
         """ Stateful tracker of how many books have been crawled per shelf
         Will set self.next_page to False when shelf is exhausted,

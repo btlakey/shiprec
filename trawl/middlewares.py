@@ -9,6 +9,20 @@ from scrapy import signals
 from itemadapter import is_item, ItemAdapter
 
 
+class ShowHeadersMiddleware:
+    def process_request(self, request, spider):
+        print(f"Request Headers: {request.headers}")
+
+    def process_response(self, request, response, spider):
+        print(f"Response Headers: {response.headers}")
+        return response
+
+
+class ChangeUserAgentMiddleware:
+    def process_request(self, request, spider):
+        request.headers["User-Agent"] = "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/109.0"
+
+
 class TrawlSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
