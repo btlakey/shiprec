@@ -1,0 +1,1 @@
+from trawl.spiders.spider import TrawlSpider, GraphQLSpider
